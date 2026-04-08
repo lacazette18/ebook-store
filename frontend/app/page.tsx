@@ -15,7 +15,6 @@ export default function Home() {
       title: 'Marketing Digital',
       description: 'Guide complet pour réussir en ligne',
       price: 19,
-      priceCents: 1900,
       chapters: 7,
       icon: '📈'
     },
@@ -24,7 +23,6 @@ export default function Home() {
       title: 'Productivité',
       description: 'Gagnez du temps chaque jour',
       price: 15,
-      priceCents: 1500,
       chapters: 5,
       icon: '⚡'
     },
@@ -33,7 +31,6 @@ export default function Home() {
       title: 'Crypto pour Débutant',
       description: 'Comprenez les crypto sans jargon',
       price: 29,
-      priceCents: 2900,
       chapters: 8,
       icon: '₿'
     }
@@ -43,14 +40,10 @@ export default function Home() {
     setLoading(ebookId)
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/create-checkout-session`, {
+      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ebookId,
-          successUrl: `${window.location.origin}/success`,
-          cancelUrl: window.location.origin
-        })
+        body: JSON.stringify({ ebookId })
       })
       
       const data = await res.json()
