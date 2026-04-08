@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Link from 'next/link'
 
 export const metadata = {
@@ -6,32 +7,65 @@ export const metadata = {
 }
 
 export default function Home() {
+  const [loading, setLoading] = useState(null)
+  
   const ebooks = [
     {
       id: 'marketing-digital',
       title: 'Marketing Digital',
       description: 'Guide complet pour réussir en ligne',
       price: 19,
+      priceCents: 1900,
       chapters: 7,
-      color: 'from-purple-500 to-pink-500'
+      icon: '📈'
     },
     {
       id: 'productivite',
       title: 'Productivité',
       description: 'Gagnez du temps chaque jour',
       price: 15,
+      priceCents: 1500,
       chapters: 5,
-      color: 'from-blue-500 to-cyan-500'
+      icon: '⚡'
     },
     {
       id: 'crypto-debutant',
       title: 'Crypto pour Débutant',
       description: 'Comprenez les crypto sans jargon',
       price: 29,
+      priceCents: 2900,
       chapters: 8,
-      color: 'from-orange-500 to-yellow-500'
+      icon: '₿'
     }
   ]
+
+  async function handleBuy(ebookId) {
+    setLoading(ebookId)
+    
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ebookId,
+          successUrl: `${window.location.origin}/success`,
+          cancelUrl: window.location.origin
+        })
+      })
+      
+      const data = await res.json()
+      
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Erreur: ' + data.error)
+        setLoading(null)
+      }
+    } catch (error) {
+      alert('Erreur de connexion')
+      setLoading(null)
+    }
+  }
 
   return (
     <main style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff', fontFamily: 'system-ui' }}>
@@ -54,13 +88,13 @@ export default function Home() {
       {/* E-books Grid */}
       <section style={{ padding: '0 40px 80px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', maxWidth: '1200px', margin: '0 auto' }}>
         {ebooks.map((ebook) => (
-          <div key={ebook.id} style={{ background: '#111', borderRadius: '20px', padding: '30px', border: '1px solid #222', transition: 'transform 0.2s' }}>
+          <div key={ebook.id} style={{ background: '#111', borderRadius: '20px', padding: '30px', border: '1px solid #222' }}>
             <div style={{ 
               width: '60px', height: '60px', borderRadius: '15px', 
-              background: `linear-gradient(135deg, var(--${ebook.color.split(' ')[0].replace('from-', '')}), var(--${ebook.color.split(' ')[1].replace('to-', '')}))`,
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
               marginBottom: '20px', fontSize: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
-              📖
+              {ebook.icon}
             </div>
             
             <h3 style={{ fontSize: '24px', marginBottom: '10px' }}>{ebook.title}</h3>
@@ -71,13 +105,19 @@ export default function Home() {
               <span style={{ color: '#666' }}>{ebook.chapters} chapitres</span>
             </div>
             
-            <a href={`/ebook/${ebook.id}`} style={{ 
-              display: 'block', padding: '15px', borderRadius: '10px', 
-              background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', 
-              color: '#fff', textAlign: 'center', textDecoration: 'none', fontWeight: 'bold'
-            }}>
-              Voir le guide →
-            </a>
+            <button 
+              onClick={() => handleBuy(ebook.id)}
+              disabled={loading === ebook.id}
+              style={{ 
+                width: '100%', padding: '15px', borderRadius: '10px', 
+                background: loading === ebook.id ? '#333' : 'linear-gradient(90deg, #6366f1, #8b5cf6)', 
+                color: '#fff', border: 'none', fontSize: '16px', fontWeight: 'bold',
+                cursor: loading === ebook.id ? 'not-allowed' : 'pointer',
+                opacity: loading === ebook.id ? 0.5 : 1
+              }}
+            >
+              {loading === ebook.id ? 'Chargement...' : 'Acheter maintenant →'}
+            </button>
           </div>
         ))}
       </section>
